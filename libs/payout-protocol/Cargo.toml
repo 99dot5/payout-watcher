@@ -1,0 +1,56 @@
+[package]
+name = "payout_protocol"
+version = "0.1.12"
+edition = "2024"
+description = "The vault's signed-payload protocol: the fast-payout and deposit-authorisation payloads, the secp256k1 signer, the verifier, the kernel identity and the decoder of the vault's L1 payout and sweep events that every payout signer, authoriser, sweep tracker and watcher shares (ADR 0027 §4.2, §4.4, §4.8)"
+
+[lib]
+name = "payout_protocol"
+path = "src/lib.rs"
+
+[features]
+default = []
+# serde derives on `FastPayoutSignature`, for the payloads the payout workers
+# exchange; the payload travels as hex.
+serde = ["dep:serde"]
+
+[dependencies]
+# The hex form of a root hash (`kernel_identity`) and, under the `serde`
+# feature, of the payload on the wire.
+hex = { workspace = true }
+# The secp256k1 signer. The same crate `tezos_crypto_rs` verifies secp256k1
+# with, at the version already in the workspace graph, so the signer and the
+# verifier share one implementation; its `sign` is RFC 6979 deterministic with
+# a low-S normalisation, which is what `octez-client` and pytezos produce.
+libsecp256k1 = "0.7.2"
+num-bigint = "0.4"
+# The Michelson value types `PACK` serialises; the same crate and version the
+# operator CLI packs admin intents with. Also the reveal-tree page encoder
+# behind `kernel_identity::root_hash_of` (ADR 0027 §1.3): the same
+# `prepare_preimages` the installer and `99dot5 smart-rollup build-installer`
+# derive a kernel's root hash with.
+tezos-smart-rollup-encoding = { workspace = true, features = ["alloc", "tezos-encoding", "crypto", "bls"] }
+tezos_data_encoding = { workspace = true }
+# blake2b-256, the digest every non-BLS Tezos signature is over, and the typed
+# base58check codecs for chain ids, vault addresses, keys and signatures,
+# which compare the prefix and the payload length.
+tezos_crypto_rs = { workspace = true }
+# The forged `address` of the vault: `Contract::Originated`.
+tezos-protocol = { workspace = true }
+# The sender rule (`decode_address`), its forged form, and the
+# Ed25519/secp256k1/P-256 verifier the sequencer's sign-in and the operator
+# CLI already use.
+tezos_wallet_signature = { path = "../tezos-wallet-signature" }
+serde = { workspace = true, features = ["derive"], optional = true }
+# The Micheline JSON a node renders block metadata, contract storage and
+# outbox messages in, read by `micheline`, `keys` and `events`.
+serde_json = { workspace = true }
+thiserror = { workspace = true }
+# Session ids in the kernel record keys.
+uuid = { workspace = true }
+
+[dev-dependencies]
+# Test-only: reads a signature's raw bytes independently of the crate's encoder.
+bs58 = { workspace = true }
+serde = { workspace = true, features = ["derive"] }
+tokio = { workspace = true, features = ["macros", "rt-multi-thread"] }

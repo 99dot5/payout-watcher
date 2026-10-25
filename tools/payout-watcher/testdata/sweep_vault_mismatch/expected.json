@@ -1,0 +1,6 @@
+{
+  "alarms": [
+    "sweep_vault_mismatch"
+  ],
+  "exit_code": 1
+}

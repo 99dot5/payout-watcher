@@ -1,0 +1,7 @@
+{
+  "alarms": [
+    "signature_invalid",
+    "under_threshold"
+  ],
+  "exit_code": 1
+}

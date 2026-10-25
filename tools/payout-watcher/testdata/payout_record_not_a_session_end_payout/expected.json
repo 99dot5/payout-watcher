@@ -1,0 +1,6 @@
+{
+  "alarms": [
+    "payout_record_not_a_session_end_payout"
+  ],
+  "exit_code": 1
+}

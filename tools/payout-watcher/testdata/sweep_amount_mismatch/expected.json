@@ -1,0 +1,6 @@
+{
+  "alarms": [
+    "sweep_amount_mismatch"
+  ],
+  "exit_code": 1
+}

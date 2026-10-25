@@ -1,0 +1,7 @@
+max_rollup_lag_levels = 60
+[kernel]
+expected_version = "9.9.9"
+
+[[vaults]]
+address = "KT1BuEZtb68c1Q4yjtckcNjGELqWt56Xyesc"
+start_level = 100

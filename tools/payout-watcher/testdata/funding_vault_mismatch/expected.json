@@ -1,0 +1,6 @@
+{
+  "alarms": [
+    "funding_vault_mismatch"
+  ],
+  "exit_code": 1
+}

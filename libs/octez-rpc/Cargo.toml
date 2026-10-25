@@ -1,0 +1,21 @@
+[package]
+name = "octez_rpc"
+version = "0.3.0"
+edition = "2024"
+description = "HTTP client for the RPC of the Octez L1 node and the Octez smart-rollup node"
+
+[dependencies]
+futures-util = { workspace = true }
+hex = { workspace = true }
+reqwest = { workspace = true, features = ["json", "stream"] }
+serde = { workspace = true, features = ["derive"] }
+serde_json = { workspace = true }
+# The typed block-hash decoder, which compares the prefix and the length.
+tezos_crypto_rs = { workspace = true }
+thiserror = { workspace = true }
+tokio-util = { version = "0.7.16", features = ["codec", "io"] }
+url = { workspace = true, features = ["serde"] }
+
+[dev-dependencies]
+serde = { workspace = true, features = ["derive"] }
+tokio = { workspace = true, features = ["io-util", "macros", "net", "rt-multi-thread", "time"] }

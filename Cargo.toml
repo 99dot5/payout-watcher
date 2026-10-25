@@ -1,0 +1,29 @@
+# Generated from the 99dot5 monorepo at the commit in EXPORT_COMMIT.
+[workspace]
+members = ["tools/payout-watcher"]
+resolver = "2"
+
+[profile.dev]
+debug = "line-tables-only"
+
+[workspace.dependencies]
+borsh = { version = "1.6.1", features = ["derive"] }
+bs58 = { version = "0.5.1", features = ["check"] }
+clap = "4.6.0"
+config = { version = "0.15.22", features = ["yaml"] }
+futures-util = { version = "0.3.32", default-features = false, features = ["std"] }
+hex = "0.4.3"
+reqwest = { version = "0.12.28", default-features = false, features = ["rustls-tls-webpki-roots", "http2", "charset", "macos-system-configuration"] }
+serde = "1.0.228"
+serde_json = "1.0.149"
+tezos-protocol = { git = "https://gitlab.com/tezos/tezos.git", rev = "e5d8a6b8976ef3dabc8c4b72bd8bb564d7fe25a9" }
+tezos-smart-rollup-encoding = { git = "https://gitlab.com/tezos/tezos.git", rev = "e5d8a6b8976ef3dabc8c4b72bd8bb564d7fe25a9", default-features = false }
+tezos_crypto_rs = { git = "https://gitlab.com/tezos/tezos.git", rev = "e5d8a6b8976ef3dabc8c4b72bd8bb564d7fe25a9", default-features = false }
+tezos_data_encoding = { git = "https://gitlab.com/tezos/tezos.git", rev = "e5d8a6b8976ef3dabc8c4b72bd8bb564d7fe25a9" }
+thiserror = "2.0.18"
+time = { version = "0.3.37", features = ["formatting"] }
+tokio = { version = "1.51.0" }
+tracing = "0.1.41"
+tracing-subscriber = { version = "0.3.19", features = ["env-filter", "fmt", "tracing-log"] }
+url = "2"
+uuid = { version = "1.23.0", features = ["serde", "v4", "v7"] }

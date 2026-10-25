@@ -1,0 +1,6 @@
+{
+  "alarms": [
+    "session_not_ended"
+  ],
+  "exit_code": 1
+}

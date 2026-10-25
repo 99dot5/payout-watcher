@@ -1,0 +1,6 @@
+{
+  "alarms": [
+    "fast_payout_above_kernel"
+  ],
+  "exit_code": 1
+}

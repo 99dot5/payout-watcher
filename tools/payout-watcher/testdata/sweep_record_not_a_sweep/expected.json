@@ -1,0 +1,6 @@
+{
+  "alarms": [
+    "sweep_record_not_a_sweep"
+  ],
+  "exit_code": 1
+}

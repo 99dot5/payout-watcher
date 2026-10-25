@@ -1,0 +1,20 @@
+[package]
+name = "smart_rollup_storage_reader"
+version = "0.2.9"
+edition = "2024"
+
+[dependencies]
+smart_rollup_storage = { path = "../smart-rollup-storage" }
+octez_rpc = { path = "../octez-rpc" }
+borsh = { workspace = true }
+hex = { workspace = true }
+thiserror = { workspace = true }
+serde_json = { workspace = true }
+reqwest = { workspace = true }
+# The `NetX…` and `edpk…` spellings of the two base58-rendered raw scalars.
+tezos_crypto_rs = { workspace = true }
+
+[dev-dependencies]
+# Test-only: an independent checked decoder for the rendered scalars.
+bs58 = { workspace = true }
+tokio = { workspace = true, features = ["macros", "rt-multi-thread"] }

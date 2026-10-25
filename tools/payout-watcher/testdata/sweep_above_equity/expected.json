@@ -1,0 +1,6 @@
+{
+  "alarms": [
+    "sweep_above_equity"
+  ],
+  "exit_code": 1
+}

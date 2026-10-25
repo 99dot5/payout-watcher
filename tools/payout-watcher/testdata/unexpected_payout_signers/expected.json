@@ -1,0 +1,6 @@
+{
+  "alarms": [
+    "unexpected_payout_signers"
+  ],
+  "exit_code": 1
+}

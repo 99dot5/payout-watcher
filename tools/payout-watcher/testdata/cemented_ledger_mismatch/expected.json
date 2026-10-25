@@ -1,0 +1,6 @@
+{
+  "alarms": [
+    "ledger_mismatch"
+  ],
+  "exit_code": 1
+}

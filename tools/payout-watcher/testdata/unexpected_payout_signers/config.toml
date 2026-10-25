@@ -1,0 +1,5 @@
+max_rollup_lag_levels = 60
+[[vaults]]
+address = "KT1BuEZtb68c1Q4yjtckcNjGELqWt56Xyesc"
+start_level = 100
+expected_payout_signers = ["edpkuQgYK28u2VJ919ZPA1wV22deSMjufcrjvnJmEEdPAC8atfTAvD", "edpkvRLUFcuvRbsQHvdAuZzTSxSfYYJBGwB5FYBN76fRcVhqd6s3VW", "sppk7bWq3wGj9AuTowUc7N2dpRhMCWtw6pmDFcLrSTLyA1mnBJ9hL5T", "sppk7cvr7R7YsAHVKRdomtpcC4J4tvudRK7f2wcTmA2JaMiXAna7emD"]

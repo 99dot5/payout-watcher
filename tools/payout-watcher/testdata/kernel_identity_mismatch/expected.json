@@ -1,0 +1,6 @@
+{
+  "alarms": [
+    "kernel_identity_mismatch"
+  ],
+  "exit_code": 1
+}

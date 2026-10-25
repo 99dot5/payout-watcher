@@ -1,0 +1,20 @@
+[package]
+name = "tezos_wallet_signature"
+version = "0.1.5"
+edition = "2024"
+
+[dependencies]
+# Every base58check decode and encode goes through the pinned crypto crate,
+# whose typed decoders compare the prefix and the payload length.
+tezos_crypto_rs = { workspace = true }
+# Forged (binary) keys and addresses: `Contract` and the encoding traits.
+tezos-protocol = { workspace = true }
+tezos_data_encoding = { workspace = true }
+thiserror = { workspace = true }
+
+[dev-dependencies]
+# Test-only: builds malformed base58check fixtures under arbitrary prefixes.
+bs58 = { workspace = true }
+# Test-only: reads testdata/sign-in-vectors.json, the cross-language golden file.
+hex = { workspace = true }
+serde_json = { workspace = true }

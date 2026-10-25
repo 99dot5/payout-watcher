@@ -1,0 +1,49 @@
+[package]
+name = "payout-watcher"
+version = "0.2.9"
+edition = "2024"
+description = "Public check that every fast payout of a 99dot5 vault is backed by the rollup kernel's record (ADR 0027 §4.8)"
+
+[[bin]]
+name = "payout-watcher"
+path = "src/main.rs"
+
+[lib]
+name = "payout_watcher"
+path = "src/lib.rs"
+
+[dependencies]
+# The kernel's durable records are borsh envelopes.
+borsh = { workspace = true }
+clap = { workspace = true, features = ["derive", "env"] }
+# The services' loader: a config file (TOML, YAML or JSON) with `APP__`
+# environment overrides.
+config = { workspace = true }
+hex = { workspace = true }
+# One JSON object per log line, with the canonical field names.
+observability = { path = "../../libs/observability" }
+# The L1 and rollup node RPC client, and the one node-URL validator.
+octez_rpc = { path = "../../libs/octez-rpc" }
+# The one fast-payout payload encoder and verifier, the kernel identity and
+# the durable keys the validator signs from. No `kms`, no `serde`: the watcher
+# signs nothing and talks to no signing service.
+payout_protocol = { path = "../../libs/payout-protocol" }
+serde = { workspace = true, features = ["derive"] }
+serde_json = { workspace = true }
+# The session and transaction record layouts, and the rollup-node reader at a
+# finalised block.
+smart_rollup_storage = { path = "../../libs/smart-rollup-storage" }
+smart_rollup_storage_reader = { path = "../../libs/smart-rollup-storage-reader" }
+# Keys, signatures and addresses in their readable and optimised (bytes)
+# forms, decoded and rendered through the pinned crypto crate.
+tezos_wallet_signature = { path = "../../libs/tezos-wallet-signature" }
+thiserror = { workspace = true }
+tokio = { workspace = true, features = ["macros", "rt-multi-thread", "signal", "time"] }
+tracing = { workspace = true }
+uuid = { workspace = true }
+
+[dev-dependencies]
+# Test-only: reads address hashes independently of the code under test.
+bs58 = { workspace = true }
+# The node stand-in the live sources are tested against.
+tokio = { workspace = true, features = ["io-util", "net"] }
