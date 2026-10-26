@@ -1,6 +1,6 @@
 [package]
 name = "payout_protocol"
-version = "0.2.0"
+version = "0.2.1"
 edition = "2024"
 description = "The vault's signed-payload protocol: the fast-payout and deposit-authorisation payloads, the secp256k1 signer, the verifier, the kernel identity and the decoder of the vault's L1 payout and sweep events that every payout signer, authoriser, sweep tracker and watcher shares (ADR 0027 §4.2, §4.4, §4.8)"
 

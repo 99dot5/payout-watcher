@@ -79,7 +79,7 @@ impl SenderAddress {
 
     /// The forged `address` bytes `PACK` emits for an implicit account:
     /// `0x00 || curve tag || hash20`.
-    fn forged(&self) -> Vec<u8> {
+    pub(crate) fn forged(&self) -> Vec<u8> {
         DecodedAddress {
             curve: self.curve,
             hash: self.hash,

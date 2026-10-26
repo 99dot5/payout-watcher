@@ -55,6 +55,10 @@
 //! signature that admits a registered wallet's deposit, over its own
 //! six-tuple PACK domain (`deposit_authorisation`). It shares the encoder
 //! conventions, the signer trait and the one hashing path (`sign_payload`).
+//! And the one signature the vault takes from the PLAYER, the session key's
+//! binding of a session to its wallet (`session_binding`), is encoded here
+//! too, because the sequencer checks it before it authorises a deposit: the
+//! authorisation of a session goes only to the holder of its key.
 
 #![forbid(unsafe_code)]
 
@@ -65,6 +69,7 @@ pub mod kernel_records;
 pub mod keys;
 pub mod micheline;
 pub mod payload;
+pub mod session_binding;
 pub mod session_payout;
 pub mod sign;
 
@@ -76,6 +81,9 @@ pub use deposit_authorisation::{
 pub use payload::{
     ChainId, FAST_PAYOUT_DOMAIN, PAYOUT_SIGNER_COUNT, PAYOUT_THRESHOLD, PayloadError, VaultAddress,
     fast_payout_payload,
+};
+pub use session_binding::{
+    SESSION_BINDING_DOMAIN, session_binding_payload, verify_session_binding,
 };
 pub use sign::{
     FastPayoutSignature, LocalSecp256k1Signer, OPERATION_WATERMARK, OperationSignature,
