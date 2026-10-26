@@ -137,7 +137,7 @@ pub enum StoredTransactionKind {
     Deposit,
     /// The session's remaining balance leaving the rollup at `EndSession`
     /// (the **session payout**, paid on L1 by `execute_cemented_payout` or
-    /// the signed `fast_payout`): the row `payout-{session_id}`,
+    /// the signed `fast_payout`): the row `session-{session_id}-end-payout`,
     /// `account_address` the session owner, `amount` the balance paid out,
     /// written even when it is zero.
     SessionEndPayout,
@@ -146,8 +146,8 @@ pub enum StoredTransactionKind {
     Stake,
     /// A settled round's credited payout INTO the session's balance (the
     /// **round payout**, what house equity's `payouts` sums): the row
-    /// `round-{round_id}-payout`, written only when the credit is non-zero,
-    /// `account_address` the session owner. Never at `payout-{session_id}`.
+    /// `round-{round_id}-end-payout`, written only when the credit is non-zero,
+    /// `account_address` the session owner. Never at `session-{session_id}-end-payout`.
     RoundEndPayout,
     /// Bankroll paid into a vault through its `fund` entrypoint
     /// (`docs/specs/house-equity-and-sweeps.md` H3): the dedup row
@@ -542,7 +542,7 @@ pub struct KernelInfo {
 /// cemented payout names its `session_id` (the vault pays the owner it bound,
 /// so no recipient rides the wire). `tenant_id`/`pool_id`/`reference` are
 /// diagnostics only: they name the idempotency record (`deposit-{level}-{id}`
-/// or `payout-{session_id}` under that pool's `transactions/`) whose emission
+/// or `session-{session_id}-end-payout` under that pool's `transactions/`) whose emission
 /// this entry carries, so a queued withdrawal is traceable to its cause. Dedup
 /// is that record's job, not this entry's — a redelivered inbox message
 /// short-circuits there and never enqueues twice.

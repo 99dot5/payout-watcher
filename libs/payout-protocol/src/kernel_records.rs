@@ -1,5 +1,5 @@
 //! Where the kernel keeps what a fast-payout checker reads: the durable keys
-//! of a session's record and of its `payout-{session_id}` transaction record,
+//! of a session's record and of its `session-{session_id}-end-payout` transaction record,
 //! the block they are read at, and the one asset v1 pays in.
 //!
 //! The validator (`services/validator`) reads these to decide what to sign;
@@ -44,15 +44,15 @@ pub fn session_key(tenant: &str, pool: &str, session_id: &Uuid) -> String {
 }
 
 /// The durable key of a session's payout record: the kernel's
-/// `payout-{session_id}` reference under the pool's transaction ledger for
+/// `session-{session_id}-end-payout` reference under the pool's transaction ledger for
 /// `asset` (`libs/smart-rollup/src/transactions.rs`).
 ///
 /// The row there is the `SessionEndPayout` that `EndSession` writes: the session's
 /// balance leaving the rollup. `RoundEndPayout` is the per-round credit at
-/// `round-{round_id}-payout` and is never at this key; a reader that expects
+/// `round-{round_id}-end-payout` and is never at this key; a reader that expects
 /// it here refuses every real session.
-pub fn payout_key(tenant: &str, pool: &str, asset: &str, session_id: &Uuid) -> String {
-    format!("/tenants/{tenant}/pools/{pool}/transactions/{asset}/payout-{session_id}")
+pub fn session_end_payout_key(tenant: &str, pool: &str, asset: &str, session_id: &Uuid) -> String {
+    format!("/tenants/{tenant}/pools/{pool}/transactions/{asset}/session-{session_id}-end-payout")
 }
 
 /// The durable key of a vault's house-equity record: the four monotone
@@ -135,8 +135,8 @@ mod tests {
             "/tenants/t/pools/p/sessions/660e8400-e29b-41d4-a716-446655440099"
         );
         assert_eq!(
-            payout_key("t", "p", "TEZ", &id),
-            "/tenants/t/pools/p/transactions/TEZ/payout-660e8400-e29b-41d4-a716-446655440099"
+            session_end_payout_key("t", "p", "TEZ", &id),
+            "/tenants/t/pools/p/transactions/TEZ/session-660e8400-e29b-41d4-a716-446655440099-end-payout"
         );
         assert_eq!(
             house_equity_key("t", "p", "KT1BuEZtb68c1Q4yjtckcNjGELqWt56Xyesc"),

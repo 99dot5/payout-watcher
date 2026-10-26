@@ -1445,7 +1445,7 @@ checksum = "df94ce210e5bc13cb6651479fa48d14f601d9858cfe0467f43ae157023b938d3"
 
 [[package]]
 name = "payout-watcher"
-version = "0.2.9"
+version = "0.3.0"
 dependencies = [
  "borsh",
  "bs58",
@@ -1468,14 +1468,17 @@ dependencies = [
 
 [[package]]
 name = "payout_protocol"
-version = "0.1.12"
+version = "0.2.0"
 dependencies = [
+ "borsh",
  "bs58",
  "hex",
  "libsecp256k1",
  "num-bigint",
  "serde",
  "serde_json",
+ "smart_rollup_storage",
+ "smart_rollup_storage_reader",
  "tezos-protocol",
  "tezos-smart-rollup-encoding",
  "tezos_crypto_rs",
@@ -2123,14 +2126,14 @@ checksum = "67b1b7a3b5fe4f1376887184045fcf45c69e92af734b7aaddc05fb777b6fbd03"
 
 [[package]]
 name = "smart_rollup_storage"
-version = "0.2.4"
+version = "0.3.0"
 dependencies = [
  "borsh",
 ]
 
 [[package]]
 name = "smart_rollup_storage_reader"
-version = "0.2.9"
+version = "0.3.0"
 dependencies = [
  "borsh",
  "bs58",

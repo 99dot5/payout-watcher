@@ -4,7 +4,7 @@
 //! The records and keys are the ones the validator signs from
 //! (`payout_protocol::kernel_records`): the session at
 //! `/tenants/{tenant}/pools/{pool}/sessions/{id}` and its payout at
-//! `…/transactions/TEZ/payout-{id}`. A fast payout is sound only when the
+//! `…/transactions/TEZ/session-{id}-end-payout`. A fast payout is sound only when the
 //! session exists, has ended, was funded through the vault that paid, is a
 //! TEZ session, and the row at its payout key is the kernel's `SessionEndPayout` (the
 //! session's balance leaving the rollup) of at least the amount paid.
@@ -15,13 +15,12 @@
 //! payout tops it up to the kernel's figure (spec D2), so the player's floor
 //! is unaffected; it is reported as a notice.
 
-use borsh::BorshDeserialize;
 use payout_protocol::kernel_identity::{RootHash, format_root_hash, root_hash_of};
-use payout_protocol::kernel_records::{
-    KERNEL_BOOT_KEY, KERNEL_INFO_KEY, TEZ, payout_key, session_key,
+use payout_protocol::kernel_records::{KERNEL_BOOT_KEY, KERNEL_INFO_KEY};
+use payout_protocol::session_payout::{
+    NotReady, Read, Refusal, SessionPayoutRead, read_envelope, read_session_payout,
 };
-use smart_rollup_storage::v1::StoredTransactionKind;
-use smart_rollup_storage::{KernelInfoEnvelope, StoredSessionEnvelope, StoredTransactionEnvelope};
+use smart_rollup_storage::KernelInfoEnvelope;
 use smart_rollup_storage_reader::store::{DurableStore, StoreError};
 use uuid::Uuid;
 
@@ -54,25 +53,6 @@ pub enum KernelFinding {
     CorruptRecord { key: String, reason: String },
 }
 
-enum Read<T> {
-    Absent,
-    Value(T),
-    Corrupt(String),
-}
-
-async fn read<S: DurableStore, T: BorshDeserialize>(
-    store: &S,
-    key: &str,
-) -> Result<Read<T>, StoreError> {
-    Ok(match store.value(key).await? {
-        None => Read::Absent,
-        Some(bytes) => match T::try_from_slice(&bytes) {
-            Ok(value) => Read::Value(value),
-            Err(e) => Read::Corrupt(e.to_string()),
-        },
-    })
-}
-
 /// Compare a fast payout of `amount` mutez on `vault` with the kernel's
 /// records for `session_id` under `(tenant, pool)`.
 pub async fn check_fast_payout<S: DurableStore>(
@@ -83,39 +63,32 @@ pub async fn check_fast_payout<S: DurableStore>(
     session_id: &Uuid,
     amount: u128,
 ) -> Result<KernelFinding, StoreError> {
-    let key = session_key(tenant, pool, session_id);
-    let session = match read::<_, StoredSessionEnvelope>(store, &key).await? {
-        Read::Absent => return Ok(KernelFinding::SessionNotRecorded),
-        Read::Corrupt(reason) => return Ok(KernelFinding::CorruptRecord { key, reason }),
-        Read::Value(StoredSessionEnvelope::V1(session)) => session,
+    // The one read every pricer of a fast payout makes (the sequencer's own
+    // read, the validator's), mapped onto this watcher's findings.
+    let record = match read_session_payout(store, tenant, pool, vault, session_id).await? {
+        SessionPayoutRead::Recorded(record) => record,
+        SessionPayoutRead::NotReady(NotReady::SessionNotRecorded) => {
+            return Ok(KernelFinding::SessionNotRecorded);
+        }
+        SessionPayoutRead::NotReady(NotReady::SessionNotEnded) => {
+            return Ok(KernelFinding::SessionNotEnded);
+        }
+        SessionPayoutRead::NotReady(NotReady::PayoutNotRecorded) => {
+            return Ok(KernelFinding::PayoutNotRecorded);
+        }
+        SessionPayoutRead::Refused(Refusal::VaultMismatch { recorded, .. }) => {
+            return Ok(KernelFinding::FundingVaultMismatch { recorded });
+        }
+        SessionPayoutRead::Refused(Refusal::AssetNotTez { asset }) => {
+            return Ok(KernelFinding::SessionAssetNotTez { asset });
+        }
+        SessionPayoutRead::Refused(Refusal::NotASessionEndPayoutRecord { kind }) => {
+            return Ok(KernelFinding::PayoutRecordNotASessionEndPayout { kind });
+        }
+        SessionPayoutRead::Refused(Refusal::CorruptRecord { key, reason }) => {
+            return Ok(KernelFinding::CorruptRecord { key, reason });
+        }
     };
-    if !session.ended {
-        return Ok(KernelFinding::SessionNotEnded);
-    }
-    if session.funding_vault_address != vault {
-        return Ok(KernelFinding::FundingVaultMismatch {
-            recorded: session.funding_vault_address,
-        });
-    }
-    if session.asset != TEZ {
-        return Ok(KernelFinding::SessionAssetNotTez {
-            asset: session.asset,
-        });
-    }
-
-    let key = payout_key(tenant, pool, &session.asset, session_id);
-    let record = match read::<_, StoredTransactionEnvelope>(store, &key).await? {
-        Read::Absent => return Ok(KernelFinding::PayoutNotRecorded),
-        Read::Corrupt(reason) => return Ok(KernelFinding::CorruptRecord { key, reason }),
-        Read::Value(StoredTransactionEnvelope::V1(record)) => record,
-    };
-    // The kernel records the session's balance leaving the rollup as a
-    // `SessionEndPayout`; a round's `RoundEndPayout` credit at this key would be another row.
-    if record.kind != StoredTransactionKind::SessionEndPayout {
-        return Ok(KernelFinding::PayoutRecordNotASessionEndPayout {
-            kind: format!("{:?}", record.kind),
-        });
-    }
 
     Ok(match amount.cmp(&record.amount) {
         core::cmp::Ordering::Greater => KernelFinding::AboveKernel {
@@ -154,9 +127,9 @@ pub async fn check_kernel_pin<S: DurableStore>(
     let mismatch = |detail: String| Ok(Some(KernelMismatch { detail }));
 
     if let Some(expected) = &pin.version {
-        match read::<_, KernelInfoEnvelope>(store, KERNEL_INFO_KEY).await? {
+        match read_envelope::<_, KernelInfoEnvelope>(store, KERNEL_INFO_KEY).await? {
             Read::Absent => return mismatch(format!("{KERNEL_INFO_KEY} is absent")),
-            Read::Corrupt(reason) => {
+            Read::Corrupt { reason } => {
                 return mismatch(format!("{KERNEL_INFO_KEY} does not decode: {reason}"));
             }
             Read::Value(KernelInfoEnvelope::V1(info)) if &info.version != expected => {

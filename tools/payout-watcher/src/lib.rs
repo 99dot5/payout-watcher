@@ -9,7 +9,7 @@
 //! quietly. For each watched vault it reads every `fast_payout` and
 //! `cemented_payout` event from an L1 node, and:
 //!
-//! - compares each fast payout with the kernel's `payout-{session_id}` record
+//! - compares each fast payout with the kernel's `session-{session_id}-end-payout` record
 //!   and the session record, read from the runner's OWN rollup node at its
 //!   finalised block ([`kernel`]);
 //! - re-verifies every signature the fast payout was submitted with against

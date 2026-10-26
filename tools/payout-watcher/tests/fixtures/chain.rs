@@ -5,7 +5,7 @@
 //! vault's, verbatim.
 
 use payout_protocol::kernel_records::{
-    KERNEL_BOOT_KEY, KERNEL_INFO_KEY, TEZ, house_equity_key, payout_key, session_key,
+    KERNEL_BOOT_KEY, KERNEL_INFO_KEY, TEZ, house_equity_key, session_end_payout_key, session_key,
     sweep_id_bytes, sweep_key,
 };
 use serde_json::{Value, json};
@@ -463,7 +463,7 @@ impl Durable {
         )
     }
 
-    /// The session's `payout-{session_id}` row as the kernel's `EndSession`
+    /// The session's `session-{session_id}-end-payout` row as the kernel's `EndSession`
     /// writes it: a `SessionEndPayout`, the balance leaving the rollup.
     pub fn payout(&mut self, session: &[u8; 16], amount: u128) -> &mut Self {
         self.payout_of_kind(session, amount, StoredTransactionKind::SessionEndPayout)
@@ -479,7 +479,7 @@ impl Durable {
     ) -> &mut Self {
         let id = Uuid::from_bytes(*session);
         self.put(
-            payout_key(TENANT, POOL, TEZ, &id),
+            session_end_payout_key(TENANT, POOL, TEZ, &id),
             &StoredTransactionEnvelope::V1(StoredTransaction {
                 account_address: OWNER.to_string(),
                 asset: TEZ.to_string(),

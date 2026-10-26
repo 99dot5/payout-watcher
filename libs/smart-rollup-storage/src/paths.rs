@@ -39,7 +39,7 @@ pub enum ParamKind {
     /// An asset code (e.g. `TEZ`): non-empty, ASCII uppercase alphanumeric.
     AssetCode,
     /// A free-form single segment (e.g. a transaction `reference` such as
-    /// `payout-<uuid>`): any non-empty segment (no `/`, guaranteed by the split).
+    /// `session-<uuid>-end-payout`): any non-empty segment (no `/`, guaranteed by the split).
     String,
 }
 
@@ -542,7 +542,7 @@ mod tests {
     const POOL_SLUG: &str = "standard";
     const CONTRACT_ADDRESS: &str = "KT1BuEZtb68c1Q4yjtckcNjGELqWt56Xyesc";
     const UUID: &str = "550e8400-e29b-41d4-a716-446655440000";
-    const REFERENCE: &str = "payout-550e8400-e29b-41d4-a716-446655440000";
+    const REFERENCE: &str = "session-550e8400-e29b-41d4-a716-446655440000-end-payout";
 
     fn decoder_of(key: &str) -> DecoderKind {
         resolve(key)

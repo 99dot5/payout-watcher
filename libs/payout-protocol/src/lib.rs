@@ -28,7 +28,7 @@
 //! (`tools/payout-watcher`) after the payout landed: the kernel's identity
 //! ([`kernel_identity`]: the reveal-tree root hash of the installed kernel,
 //! ADR 0027 §1.3 condition 2) and the durable keys of the session and
-//! `payout-{session_id}` records the amount is read from
+//! `session-{session_id}-end-payout` records the amount is read from
 //! ([`kernel_records`]).
 //!
 //! The vault's L1 footprint is read here too, because every checker reads it
@@ -65,6 +65,7 @@ pub mod kernel_records;
 pub mod keys;
 pub mod micheline;
 pub mod payload;
+pub mod session_payout;
 pub mod sign;
 
 pub use deposit_authorisation::{

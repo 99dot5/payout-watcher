@@ -24,6 +24,14 @@ cargo test --locked -p payout-watcher
   vectors the payload, the signatures and the watcher's decoding are pinned
   to.
 
+## Releases
+
+Each `payout-watcher-v<version>` release of this repository carries the Linux
+arm64 build of that version as CI built it, `payout-watcher-linux-arm64`,
+beside its `payout-watcher-linux-arm64.sha256`. A published asset is never
+replaced: a new version is a new release. The release notes name the source
+commit the binary was built from.
+
 ## Provenance
 
 This tree is exported from the 99dot5 monorepo; `EXPORT_COMMIT` names the

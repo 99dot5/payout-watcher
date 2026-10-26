@@ -1,6 +1,6 @@
 [package]
 name = "payout_protocol"
-version = "0.1.12"
+version = "0.2.0"
 edition = "2024"
 description = "The vault's signed-payload protocol: the fast-payout and deposit-authorisation payloads, the secp256k1 signer, the verifier, the kernel identity and the decoder of the vault's L1 payout and sweep events that every payout signer, authoriser, sweep tracker and watcher shares (ADR 0027 §4.2, §4.4, §4.8)"
 
@@ -48,6 +48,11 @@ serde_json = { workspace = true }
 thiserror = { workspace = true }
 # Session ids in the kernel record keys.
 uuid = { workspace = true }
+# The one read of a session's payout (`session_payout`): the kernel's
+# envelopes and the durable-store trait the three readers bind to a node.
+borsh = { workspace = true }
+smart_rollup_storage = { path = "../smart-rollup-storage" }
+smart_rollup_storage_reader = { path = "../smart-rollup-storage-reader" }
 
 [dev-dependencies]
 # Test-only: reads a signature's raw bytes independently of the crate's encoder.

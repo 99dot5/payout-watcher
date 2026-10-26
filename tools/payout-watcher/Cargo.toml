@@ -1,6 +1,6 @@
 [package]
 name = "payout-watcher"
-version = "0.2.9"
+version = "0.3.0"
 edition = "2024"
 description = "Public check that every fast payout of a 99dot5 vault is backed by the rollup kernel's record (ADR 0027 §4.8)"
 

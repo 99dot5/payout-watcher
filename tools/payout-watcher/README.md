@@ -29,7 +29,7 @@ event the vault emitted, from the vault's origination onward, and:
 
 1. **Against the kernel** (each fast payout), read from your rollup node at
    its *finalised* block:
-   - the amount paid is not above the kernel's `payout-{session_id}` record
+   - the amount paid is not above the kernel's `session-{session_id}-end-payout` record
      (`fast_payout_above_kernel`);
    - the session exists (`session_not_recorded`), has ended
      (`session_not_ended`), ended with a payout record (`payout_not_recorded`)

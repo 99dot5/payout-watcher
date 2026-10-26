@@ -1,6 +1,6 @@
 [package]
 name = "smart_rollup_storage_reader"
-version = "0.2.9"
+version = "0.3.0"
 edition = "2024"
 
 [dependencies]

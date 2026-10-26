@@ -1531,7 +1531,7 @@ mod tests {
         let entry = smart_rollup_storage::v1::DeferredWithdrawal {
             tenant_id: "acme".to_string(),
             pool_id: "standard".to_string(),
-            reference: "payout-550e8400-e29b-41d4-a716-446655440000".to_string(),
+            reference: "session-550e8400-e29b-41d4-a716-446655440000-end-payout".to_string(),
             vault: "KT1BuEZtb68c1Q4yjtckcNjGELqWt56Xyesc".to_string(),
             target: DeferredTarget::CementedPayout {
                 session_id: SESSION_ID,
