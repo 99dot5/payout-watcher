@@ -43,6 +43,9 @@
 //! - `l1_level` — Tezos block height. **Never** `level` (that's the log
 //!   severity in the JSON).
 //! - `reference`, `error`, `count`, `strategy`, `end_reason` — common payloads.
+//! - `client_ip` — the verified client address of a request (the sequencer's
+//!   `CF-Connecting-IP` behind the edge secret); absent, never a guess, when
+//!   the request did not provably come through the edge.
 //!
 //! # Dependency `log` bridge
 //!

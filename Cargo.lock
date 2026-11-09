@@ -1343,7 +1343,7 @@ dependencies = [
 
 [[package]]
 name = "observability"
-version = "0.1.1"
+version = "0.1.2"
 dependencies = [
  "serde_json",
  "time",
@@ -1445,7 +1445,7 @@ checksum = "df94ce210e5bc13cb6651479fa48d14f601d9858cfe0467f43ae157023b938d3"
 
 [[package]]
 name = "payout-watcher"
-version = "0.3.1"
+version = "0.3.2"
 dependencies = [
  "borsh",
  "bs58",
