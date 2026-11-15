@@ -118,19 +118,60 @@ pub async fn sign_payload<S: PayoutSigner>(
 ) -> Result<String, SignError> {
     let digest = digest(payload);
     let raw = signer.sign_digest(&digest).await?;
+
+    encode_verified_signature(signer.public_key(), raw, payload)
+}
+
+/// Turn a backend's raw `r || s` over [`digest`]`(payload)` into the
+/// signature the vault takes: `s` normalised to the low half, encoded
+/// `spsig1…`, and verified under `public_key` over `payload` before it is
+/// returned. [`sign_payload`] finishes every signature it asks a backend for
+/// here; a key-service answer obtained outside a [`PayoutSigner`] (an
+/// operator's own `Sign` call over the same digest) is finished here too, so
+/// there is one encoding and one check for both.
+pub fn encode_verified_signature(
+    public_key: &str,
+    raw: [u8; 64],
+    payload: &[u8],
+) -> Result<String, SignError> {
     let signature = encode_signature(&normalise_low_s(raw));
 
     // The vault counts only signatures that verify (a fast payout lands as a
     // silent `Under threshold`, a deposit as `Invalid deposit authorisation`);
     // a signer that disagrees with its own key is refused here instead.
-    tezos_wallet_signature::verify_over(signer.public_key(), &signature, payload).map_err(|e| {
+    tezos_wallet_signature::verify_over(public_key, &signature, payload).map_err(|e| {
         SignError::SelfCheckFailed {
-            public_key: signer.public_key().to_string(),
+            public_key: public_key.to_string(),
             reason: e.to_string(),
         }
     })?;
 
     Ok(signature)
+}
+
+/// Why a key service's answer is not a DER ECDSA signature.
+#[derive(Debug, Error, PartialEq, Eq)]
+#[error("{detail} ({byte_count} bytes starting {leading_hex})")]
+pub struct DerSignatureError {
+    pub detail: String,
+    pub byte_count: usize,
+    pub leading_hex: String,
+}
+
+/// `r || s`, 32 bytes each, from the DER `SEQUENCE { INTEGER r, INTEGER s }`
+/// a key service returns for ECDSA (AWS KMS `Sign`). Strict DER only, which
+/// is what KMS emits. The one decoder of that form: the KMS signer unpacks
+/// every answer through it, and so does the operator tooling for an answer an
+/// operator fetched themselves. `s` is returned as the service gave it;
+/// [`encode_verified_signature`] normalises it.
+pub fn raw_signature_from_der(der: &[u8]) -> Result<[u8; 64], DerSignatureError> {
+    libsecp256k1::Signature::parse_der(der)
+        .map(|signature| signature.serialize())
+        .map_err(|e| DerSignatureError {
+            detail: format!("{e:?}"),
+            byte_count: der.len(),
+            leading_hex: hex::encode(&der[..der.len().min(8)]),
+        })
 }
 
 /// The byte Tezos prefixes to the forged bytes of a manager operation before
@@ -425,6 +466,71 @@ mod tests {
             .expect_err("self-check");
 
         assert!(matches!(err, SignError::SelfCheckFailed { .. }), "{err}");
+    }
+
+    /// A key service's answer as KMS gives it: DER, and with `s` in whichever
+    /// half the service's nonce landed it. Unpacked and finished, it is the
+    /// local signer's own `spsig1…` for the same digest, whichever half `s`
+    /// came in.
+    #[tokio::test]
+    async fn a_der_answer_in_either_half_finishes_to_the_signers_own_signature() {
+        let payload = b"\x05\x01\x00\x00\x00\x04kms!";
+        let expected = sign_payload(&signer(), payload).await.expect("signed");
+        let message = libsecp256k1::Message::parse(&digest(payload));
+        let secret = libsecp256k1::SecretKey::parse(&[7u8; 32]).expect("scalar");
+        let (low, _) = libsecp256k1::sign(&message, &secret);
+        let high = libsecp256k1::Signature {
+            r: low.r,
+            s: -low.s,
+        };
+
+        assert!(
+            !low.s.is_high() && high.s.is_high(),
+            "one answer in each half"
+        );
+
+        for answer in [low, high] {
+            let raw = raw_signature_from_der(answer.serialize_der().as_ref()).expect("DER");
+            let finished =
+                encode_verified_signature(signer().public_key(), raw, payload).expect("verifies");
+
+            assert_eq!(finished, expected);
+        }
+    }
+
+    #[test]
+    fn a_der_answer_over_another_payload_or_from_another_key_is_refused() {
+        let payload = b"\x05\x01\x00\x00\x00\x04kms!";
+        let message = libsecp256k1::Message::parse(&digest(b"other bytes"));
+        let secret = libsecp256k1::SecretKey::parse(&[7u8; 32]).expect("scalar");
+        let (signature, _) = libsecp256k1::sign(&message, &secret);
+        let raw = raw_signature_from_der(signature.serialize_der().as_ref()).expect("DER");
+
+        assert!(matches!(
+            encode_verified_signature(signer().public_key(), raw, payload),
+            Err(SignError::SelfCheckFailed { .. })
+        ));
+
+        let other_key = LocalSecp256k1Signer::from_secret_exponent(&[9u8; 32]).expect("valid");
+        let message = libsecp256k1::Message::parse(&digest(payload));
+        let (signature, _) = libsecp256k1::sign(&message, &secret);
+        let raw = raw_signature_from_der(signature.serialize_der().as_ref()).expect("DER");
+
+        assert!(matches!(
+            encode_verified_signature(other_key.public_key(), raw, payload),
+            Err(SignError::SelfCheckFailed { .. })
+        ));
+    }
+
+    #[test]
+    fn a_non_der_answer_is_refused() {
+        assert!(raw_signature_from_der(&[]).is_err());
+        assert!(raw_signature_from_der(&[0x30, 0x02, 0x02, 0x00]).is_err());
+
+        let err = raw_signature_from_der(&[0xff; 64]).expect_err("raw r||s is not DER");
+
+        assert_eq!(err.byte_count, 64);
+        assert_eq!(err.leading_hex, "ffffffffffffffff");
     }
 
     #[test]
